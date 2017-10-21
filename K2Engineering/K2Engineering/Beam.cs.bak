@@ -121,34 +121,53 @@ namespace K2Engineering {
             return DataOut;
         }
 
-    
-    public double CalculateThetaX(Vector3d p, Vector3d y) {
-      return p.Unitize * y;
-    }
-    
-    public double CalculateThetaY(Vector3d p, Vector3d x) {
-      return p.Unitize * x;
-    }
-    
-    public double CalculateTwist(Vector3d x1, Vector3d x2, Vector3d y1, Vector3d y2) {
-      return (x1 * y2 - x2 * y1) * 0.5;
-    }
+        public double CalculateTheta() {
+            return -1;
+        }
 
-    public double CalculateElongation(Vector3d p, double L0, double Tx1, double Tx2, double Ty1, double Ty2) {
-      return (p * p - L0 ^ 2) / (2 * L0) + L0 / 60 * (4 * (Tx1 ^ 2 + Ty1 ^ 2) - 2 * (Tx1 * Tx2 - Ty1 * Ty2) + 4 * (Tx2 ^ 2 + Ty2 ^ 2));
-    }
+        public double CalculateThetaX1() {
+            return -1;
+        }
 
-    public double CalculateN(double E, double A, double L0, double e) {
-      return E * A / L0 * e;
-    }
-    
-    public double CalculateMx(double N, double L0, double Tx1, double Tx2) {
-      return N * L0/30 * (4 * Tx1 - Tx2) + 2 * E * Ix / L0 * (2 * Tx1 + Tx2);
-    }
-    
-    public double CalculateTorsion(double GJ, double L0, double psi) {
-      return GJ /psi * L0;
-    }
+        public double CalculateThetaX2() {
+            return -1;
+        }
+
+        public double CalculateThetaY1() {
+            return -1;
+        }
+
+        public double CalculateThetaY2() {
+            return -1;
+        }
+
+        public double CalculateTwist() {
+            return -1;
+        }
+
+        public double CalculateMx1() {
+            return -1;
+        }
+
+        public double CalculateMx2() {
+            return -1;
+        }
+
+        public double CalculateMy1() {
+            return -1;
+        }
+
+        public double CalculateMy2() {
+            return -1;
+        }
+
+        public double CalculateTorsion() {
+            return -1;
+        }
+
+        public double CalculateNormalForce() {
+            return -1;
+        }
 
 
 

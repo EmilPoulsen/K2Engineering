@@ -146,13 +146,44 @@ namespace K2Engineering {
       return E * A / L0 * e;
     }
     
-    public double CalculateMx(double N, double L0, double Tx1, double Tx2) {
+    public double CalculateM(double N, double L0, double Tx1, double Tx2) {
       return N * L0/30 * (4 * Tx1 - Tx2) + 2 * E * Ix / L0 * (2 * Tx1 + Tx2);
     }
     
-    public double CalculateTorsion(double GJ, double L0, double psi) {
+    public double CalculateMT(double GJ, double L0, double psi) {
       return GJ /psi * L0;
     }
+    
+    public Vector3d CalculateForceAtNode1(double N, Vector3d p, double Mx1, Vector3d y1, double My1, Vector3d x1, double Mx2, Vector3d y2, double My2, Vector3d x2) {
+      return (N * p + Mx1 * y1 - My1 * x1 + Mx2 * y2 + My2 * x2)/L0;
+    }
+    
+    //node 2 is neg node 1
+    public Vector3d CalculateForceAtNode2(double N, Vector3d p, double Mx1, Vector3d y1, double My1, Vector3d x1, double Mx2, Vector3d y2, double My2, Vector3d x2) {
+    	return -1*CalculateMomentAtNode1(N, p, Mx1, y1, My1, x1, Mx2, y2, My2, x2);
+    }
+    
+    private Vector3d CalculateMomentAtNode(double N, Vector3d p, double Mx, Vector3d y, double My, Vector3d x, double MT, Vector3d yAlt, Vector3d xAlt) {
+    	return - ( CalculateMomentCompA(p,Mx,y,My,x) + CalculateMomentCompB(MxT,y,x,yAlt,xAlt) )
+    }
+    
+    private Vector3d CalculateMomentCompA(Vector3d p, double Mx, Vector3d y, double My, Vector3d x) {
+    	return Mx*Vector3d.CrossProduct(y,p)/L0 - My*Vector3d.CrossProduct(x,p)/L0
+    }
+    
+    private Vector3d CalculateMomentCompB(double MxT, Vector3d y1, Vector3d x1, Vector3d y2, Vector3d x2) {
+    	return MT * (Vector3d.CrossProduct(x1,y2)-Vector3d.CrossProduct(y1,x2)
+    }
+    
+    public Vector3d CalculateMomentAtNode1(double N, Vector3d p, double Mx, Vector3d y, double My, Vector3d x, double MT, Vector3d yAlt, Vector3d xAlt) {
+    	return - ( CalculateMomentCompA(p,Mx,y,My,x) + CalculateMomentCompB(MxT,y,x,yAlt,xAlt) )
+    }
+    
+    public Vector3d CalculateMomentAtNode2(double N, Vector3d p, double Mx, Vector3d y, double My, Vector3d x, double MT, Vector3d yAlt, Vector3d xAlt) {
+    	return - ( CalculateMomentCompA(p,Mx,y,My,x) + CalculateMomentCompB(MxT,yAlt,xAlt,y,x) )
+    }
+    
+    
 
         /*
     /// <summary>

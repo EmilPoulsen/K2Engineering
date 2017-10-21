@@ -122,12 +122,16 @@ namespace K2Engineering {
         }
 
     
-    public double CalculateThetaX(Vector3d p, Vector3d y) {
-      return p.Unitize * y;
+    public double CalculateThetaX(Vector3d p, Vector3d y)
+    {
+        p.Unitize();
+      return p * y;
     }
     
-    public double CalculateThetaY(Vector3d p, Vector3d x) {
-      return p.Unitize * x;
+    public double CalculateThetaY(Vector3d p, Vector3d x)
+    {
+        p.Unitize();
+      return p * x;
     }
     
     public double CalculateTwist(Vector3d x1, Vector3d x2, Vector3d y1, Vector3d y2) {
@@ -135,7 +139,7 @@ namespace K2Engineering {
     }
 
     public double CalculateElongation(Vector3d p, double L0, double Tx1, double Tx2, double Ty1, double Ty2) {
-      return (p * p - L0 ^ 2) / (2 * L0) + L0 / 60 * (4 * (Tx1 ^ 2 + Ty1 ^ 2) - 2 * (Tx1 * Tx2 - Ty1 * Ty2) + 4 * (Tx2 ^ 2 + Ty2 ^ 2));
+      return (p * p - L0 * L0) / (2 * L0) + L0 / 60 * (4 * (Tx1 * Tx1 + Ty1 * Ty1) - 2 * (Tx1 * Tx2 - Ty1 * Ty2) + 4 * (Tx2 * Tx2 + Ty2 * Ty2));
     }
 
     public double CalculateN(double E, double A, double L0, double e) {

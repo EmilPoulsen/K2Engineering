@@ -104,6 +104,28 @@ namespace K2Engineering {
 
             Move[0] = AxialMove + SX1 - SY1 + SX2 - SY2;
             Move[1] = -Move[0];
+
+        
+            //K2 Calcs   -----------------------------------------
+            
+            //Element Internal Forces
+            double L0 = RestLength; //Initial Length / Rest Length
+            double L = CurrentLength; // New Length / Current Length
+            double e; // Elongation
+            double N; // Normal Force
+            double MX1, MX2, MY1, MY2; //Internal Moments
+
+            e = L - L0;  //Calculate elongation
+            // e = CalculateElongation();  -- incorporates bowing
+
+            N = CalculateN(E, A, L0, e);  //Calculate normal force
+
+            MX1 = CalculateMx(N, L0, TX1, TX2);
+            MX2 = CalculateMx(N, L0, TX2, TX1);
+            MY1 = CalculateMx(N, L0, TY1, TY2);
+            MY2 = CalculateMx(N, L0, TY2, TY1);
+
+            //Apply Element Forces to Nodes
         }
 
         public override object Output(List<KangarooSolver.Particle> p)

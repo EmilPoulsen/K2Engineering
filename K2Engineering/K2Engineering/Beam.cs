@@ -154,6 +154,36 @@ namespace K2Engineering {
       return GJ /psi * L0;
     }
 
+        /*
+    /// <summary>
+    /// Transform the end moments expressed in local coordinates to global and 
+    /// apply them to the nodes.
+    /// </summary>
+    public void ApplyMomentsToNodes() {
+        EmuVector p = this.CurrentLineVector;
+        double[] _nM1 = new double[3];  //Moment for node 1 in nodal coordinates.
+        double[] _nM2 = new double[3];  //Moment for node 2 in nodal coordiantes.
+        double iL = _innerBeam.InitialLength * _slackTemp;//_slackLengthCustomScaleFactor * _slackLengthGlobalScaleFactor * _initLength;
+
+        //Moment for node 1:
+        _nM1[0] = -1 * (_M1[0] * (p.Z * _cs1.YAxis.Y / iL) - _M1[1] * (p.Z * _cs1.XAxis.Y / iL) + _MT * ((_cs1.XAxis.Y * _cs2.YAxis.Z - _cs1.YAxis.Y * _cs2.XAxis.Z) / 2));
+        _nM1[0] += 1 * (_M1[0] * (p.Y * _cs1.YAxis.Z / iL) - _M1[1] * (p.Y * _cs1.XAxis.Z / iL) + _MT * ((_cs1.XAxis.Z * _cs2.YAxis.Y - _cs1.YAxis.Z * _cs2.XAxis.Y) / 2));
+        _nM1[1] = -1 * (_M1[0] * (p.X * _cs1.YAxis.Z / iL) - _M1[1] * (p.X * _cs1.XAxis.Z / iL) + _MT * ((_cs1.XAxis.Z * _cs2.YAxis.X - _cs1.YAxis.Z * _cs2.XAxis.X) / 2));
+        _nM1[1] += 1 * (_M1[0] * (p.Z * _cs1.YAxis.X / iL) - _M1[1] * (p.Z * _cs1.XAxis.X / iL) + _MT * ((_cs1.XAxis.X * _cs2.YAxis.Z - _cs1.YAxis.X * _cs2.XAxis.Z) / 2));
+        _nM1[2] = -1 * (_M1[0] * (p.Y * _cs1.YAxis.X / iL) - _M1[1] * (p.Y * _cs1.XAxis.X / iL) + _MT * ((_cs1.XAxis.X * _cs2.YAxis.Y - _cs1.YAxis.X * _cs2.XAxis.Y) / 2));
+        _nM1[2] += 1 * (_M1[0] * (p.X * _cs1.YAxis.Y / iL) - _M1[1] * (p.X * _cs1.XAxis.Y / iL) + _MT * ((_cs1.XAxis.Y * _cs2.YAxis.X - _cs1.YAxis.Y * _cs2.XAxis.X) / 2));
+
+        //Moment for node 2:
+        _nM2[0] = -1 * (_M2[0] * (p.Z * _cs2.YAxis.Y / iL) - _M2[1] * (p.Z * _cs2.XAxis.Y / iL) - _MT * ((_cs1.XAxis.Y * _cs2.YAxis.Z - _cs1.YAxis.Y * _cs2.XAxis.Z) / 2));
+        _nM2[0] += 1 * (_M2[0] * (p.Y * _cs2.YAxis.Z / iL) - _M2[1] * (p.Y * _cs2.XAxis.Z / iL) - _MT * ((_cs1.XAxis.Z * _cs2.YAxis.Y - _cs1.YAxis.Z * _cs2.XAxis.Y) / 2));
+        _nM2[1] = -1 * (_M2[0] * (p.X * _cs2.YAxis.Z / iL) - _M2[1] * (p.X * _cs2.XAxis.Z / iL) - _MT * ((_cs1.XAxis.Z * _cs2.YAxis.X - _cs1.YAxis.Z * _cs2.XAxis.X) / 2));
+        _nM2[1] += 1 * (_M2[0] * (p.Z * _cs2.YAxis.X / iL) - _M2[1] * (p.Z * _cs2.XAxis.X / iL) - _MT * ((_cs1.XAxis.X * _cs2.YAxis.Z - _cs1.YAxis.X * _cs2.XAxis.Z) / 2));
+        _nM2[2] = -1 * (_M2[0] * (p.Y * _cs2.YAxis.X / iL) - _M2[1] * (p.Y * _cs2.XAxis.X / iL) - _MT * ((_cs1.XAxis.X * _cs2.YAxis.Y - _cs1.YAxis.X * _cs2.XAxis.Y) / 2));
+        _nM2[2] += 1 * (_M2[0] * (p.X * _cs2.YAxis.Y / iL) - _M2[1] * (p.X * _cs2.XAxis.Y / iL) - _MT * ((_cs1.XAxis.Y * _cs2.YAxis.X - _cs1.YAxis.Y * _cs2.XAxis.X) / 2));
+
+        ApplyMomentsToNodes(_nM1, _nM2);
+    }
+         */
 
 
 

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using KangarooSolver;
 
 namespace K2Engineering {
     public class Beam : GoalObject
@@ -20,6 +21,10 @@ namespace K2Engineering {
         public double G; // ShearModulus;
         public double J; // MomentOfInertiaInTorsion
         public double iL; //InitialLength 
+
+        public double A, GJ, RestLength;
+        public double TX1, TX2, TY1, TY2, twist;
+
 
         public Beam(Plane StartPlane, Plane EndPlane, Plane StartNode, Plane EndNode, double L, double E, double A, double Ix, double Iy, double GJ)
         {

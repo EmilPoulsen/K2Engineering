@@ -31,6 +31,10 @@ namespace K2Engineering {
 
         }
 
+        public double CalculateTheta() {
+            return -1;
+        }
+
         public double CalculateThetaX1() {
             return -1;
         }

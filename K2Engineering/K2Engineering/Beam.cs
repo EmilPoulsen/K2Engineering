@@ -238,7 +238,9 @@ namespace K2Engineering {
             DataOut.Add(F2);
             DataOut.Add(M1);
             DataOut.Add(M2);
-            
+            DataOut.Add(this.P0R);
+            DataOut.Add(this.P1R);
+
             return DataOut;
         }
     }

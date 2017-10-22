@@ -70,7 +70,7 @@ namespace K2Engineering {
            
             //Create instance of bar
             //GoalObject barElement = new BeamGoal(startPlane, endPlane, L, E, A, Ix, Iy, GJ);
-            GoalObject beamElement = new BeamGoal(startPlane, endPlane, Plane.Unset, Plane.Unset, L, E, A, Ix, Iy, );
+            GoalObject beamElement = new BeamGoal(startPlane, endPlane, Plane.Unset, Plane.Unset, L, E, A, Ix, Iy, G, J);
 
             //Output
             DA.SetData(0, beamElement);
@@ -101,7 +101,8 @@ namespace K2Engineering {
         public double A, GJ, RestLength;
         public double TX1, TX2, TY1, TY2, twist;
 
-        public BeamGoal(Plane StartPlane, Plane EndPlane, Plane StartNode, Plane EndNode, double L, double E, double A, double Ix, double Iy, double G, double J)
+        public BeamGoal(Plane StartPlane, Plane EndPlane, Plane StartNode, Plane EndNode, double L, 
+            double E, double A, double Ix, double Iy, double G, double J)
 
         {
             this.P0 = StartPlane;
@@ -115,13 +116,13 @@ namespace K2Engineering {
             this.A = A;
             this.Ix = Ix;
             this.Iy = Iy;
-            this.GJ = GJ;
+            this.GJ = G * J;
 
-            PPos = new Point3d[2] {StartPlane.Origin, EndPlane.Origin};
-            Move = new Vector3d[2];
-            Weighting = new double[2] {E, E};
-            Torque = new Vector3d[2];
-            TorqueWeighting = new double[2] {E, E};
+            this.PPos = new Point3d[2] { StartPlane.Origin, EndPlane.Origin };
+            this.Move = new Vector3d[2];
+            this.Weighting = new double[2] { E, E };
+            this.Torque = new Vector3d[2];
+            this.TorqueWeighting = new double[2] {E, E};
 
             InitialOrientation = new Plane[2] {StartNode, EndNode};
 

@@ -69,7 +69,7 @@ namespace K2Engineering {
            
             //Create instance of bar
             //GoalObject barElement = new BeamGoal(startPlane, endPlane, L, E, A, Ix, Iy, GJ);
-            GoalObject beamElement = new BeamGoal(startPlane, endPlane, startPlane, endPlane, L, E, A, Ix, Iy, G, J);
+            GoalObject beamElement = new BeamGoal(startPlane, endPlane, startPlane, endPlane, E, A, Ix, Iy, G, J);
 
             //Output
             DA.SetData(0, beamElement);
@@ -102,7 +102,7 @@ namespace K2Engineering {
         public double A, GJ, L0;
         public double TX1, TX2, TY1, TY2, twist;
 
-        public BeamGoal(Plane StartPlane, Plane EndPlane, Plane StartNode, Plane EndNode, double L, 
+        public BeamGoal(Plane StartPlane, Plane EndPlane, Plane StartNode, Plane EndNode, 
             double E, double A, double Ix, double Iy, double G, double J)
 
         {
@@ -112,7 +112,7 @@ namespace K2Engineering {
             this.P0.Transform(Transform.ChangeBasis(Plane.WorldXY, StartNode));
             this.P1.Transform(Transform.ChangeBasis(Plane.WorldXY, EndNode));
 
-            L0 = L;
+            L0 = StartPlane.Origin.DistanceTo(EndPlane.Origin);
             this.E = E;
             this.A = A;
             this.Ix = Ix;

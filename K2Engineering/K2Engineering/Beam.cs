@@ -161,23 +161,29 @@ namespace K2Engineering {
 
         public double CalculateMT(double G, double J, double L0, double Tz)
         {
-            return G * J/Tz*L0;
+            var output = G * J*Tz/L0;
+            return output;
         }
 
         public Vector3d CalculateForceAtNode1(double N, Vector3d p, double Mx1, Vector3d y1, double My1, Vector3d x1,
             double Mx2, Vector3d y2, double My2, Vector3d x2, double L0)
         {
-            return (N*p + Mx1*y1 - My1*x1 + Mx2*y2 + My2*x2)/L0;
+            var output =  (N*p + Mx1*y1 - My1*x1 + Mx2*y2 + My2*x2)/L0;
+            return output;
+              
         }
 
-        private Vector3d CalculateMomentCompA(Vector3d p, double Mx, Vector3d y, double My, Vector3d x, double L0)
+        public static Vector3d CalculateMomentCompA(Vector3d p, double Mx, Vector3d y, double My, Vector3d x, double L0)
         {
-            return Mx*Vector3d.CrossProduct(y, p)/L0 - My*Vector3d.CrossProduct(x, p)/L0;
+            var output =  Mx*Vector3d.CrossProduct(y, p)/L0 - My*Vector3d.CrossProduct(x, p)/L0;
+            return output;
         }
 
         private Vector3d CalculateMomentCompB(double MT, Vector3d y1, Vector3d x1, Vector3d y2, Vector3d x2)
         {
-            return MT*(Vector3d.CrossProduct(x1, y2) - Vector3d.CrossProduct(y1, x2));
+            var output = MT*(Vector3d.CrossProduct(x1, y2) - Vector3d.CrossProduct(y1, x2));
+            return output;
+                
         }
 
         public override void Calculate(List<KangarooSolver.Particle> p)

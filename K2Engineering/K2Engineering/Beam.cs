@@ -5,9 +5,67 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using KangarooSolver;
+using Grasshopper.Kernel;
 
 namespace K2Engineering {
-    public class Beam : GoalObject
+
+    public class Beam : GH_Component {
+        /// <summary>
+        /// Initializes a new instance of the Bar class.
+        /// </summary>
+        public Beam()
+            : base("Beam", "Beam",
+                "A goal that represents a beam element.",
+                "K2Eng", "0 Elements") {
+        }
+
+        /// <summary>
+        /// Registers all the input parameters for this component.
+        /// </summary>
+        protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager) {
+            pManager.AddLineParameter("Line", "Ln", "Line representing the bar element [m]", GH_ParamAccess.item);
+            pManager.AddNumberParameter("E-Modulus", "E", "E-Modulus of the material [MPa]", GH_ParamAccess.item);
+            pManager.AddNumberParameter("Area", "A", "Cross-section area [mm2]", GH_ParamAccess.item);
+        }
+
+        /// <summary>
+        /// Registers all the output parameters for this component.
+        /// </summary>
+        protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager) {
+            pManager.AddGenericParameter("B", "Bar", "Bar element with force and stress output", GH_ParamAccess.item);
+        }
+
+        /// <summary>
+        /// This is the method that actually does the work.
+        /// </summary>
+        /// <param name="DA">The DA object is used to retrieve from inputs and store in outputs.</param>
+        protected override void SolveInstance(IGH_DataAccess DA) {
+            //Input
+            Plane startPlane = Plane.Unset;
+            Plane endPlane = Plane.Unset;
+            double E = 0;
+            double A = 0;
+            double L = 0;
+            double Ix = 0;
+            double Iy = 0;
+            double GJ = 0;
+
+            //Create instance of bar
+            //GoalObject barElement = new BeamGoal(startPlane, endPlane, L, E, A, Ix, Iy, GJ);
+            GoalObject beamElement = new BeamGoal(startPlane, endPlane, Plane.Unset, Plane.Unset, L, E, A, Ix, Iy, GJ);
+
+            //Output
+            DA.SetData(0, beamElement);
+        }
+
+        public override Guid ComponentGuid {
+            get { return new Guid("F548AE24-9567-4A2A-8252-D79A5BBEA5F7"); }
+        }
+        
+    }
+
+
+    public class BeamGoal : GoalObject
     {
 
         public Plane P0; //Original plane at first node
@@ -26,7 +84,7 @@ namespace K2Engineering {
         public double TX1, TX2, TY1, TY2, twist;
 
 
-        public Beam(Plane StartPlane, Plane EndPlane, Plane StartNode, Plane EndNode, double L, double E, double A, double Ix, double Iy, double GJ)
+        public BeamGoal(Plane StartPlane, Plane EndPlane, Plane StartNode, Plane EndNode, double L, double E, double A, double Ix, double Iy, double GJ)
         {
             this.P0 = StartPlane;
             this.P1 = EndPlane;
@@ -80,10 +138,12 @@ namespace K2Engineering {
             //bend angles
             Vector3d UnitCurrent = Current;
             UnitCurrent.Unitize();
+
             TX1 = Y1 * UnitCurrent;
             TX2 = Y2 * UnitCurrent;
             TY1 = X1 * UnitCurrent;
             TY2 = X2 * UnitCurrent;
+
 
             //twist
             twist = ((X1 * Y2) - (X2 * Y1)) / 2.0;

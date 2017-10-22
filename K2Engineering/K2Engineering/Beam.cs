@@ -161,7 +161,7 @@ namespace K2Engineering {
 
         public double CalculateMT(double G, double J, double L0, double Tz)
         {
-            return G * J/Tz*L0;
+            return G * J * Tz / L0;
         }
 
         public Vector3d CalculateForceAtNode1(double N, Vector3d p, double Mx1, Vector3d y1, double My1, Vector3d x1,

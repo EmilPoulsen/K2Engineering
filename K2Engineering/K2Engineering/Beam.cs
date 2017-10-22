@@ -96,7 +96,9 @@ namespace K2Engineering {
         public double Iy; //SecondMomentOfAreaAroundYY
         public double G; // ShearModulus;
         public double J; // MomentOfInertiaInTorsion
-        public double iL; //InitialLength 
+
+        private Vector3d F1, F2, M1, M2;
+
 
         public double A, GJ, L0;
         public double TX1, TX2, TY1, TY2, twist;
@@ -131,97 +133,6 @@ namespace K2Engineering {
             P1R = EndPlane;
         }
 
-        public override void Calculate(List<KangarooSolver.Particle> p)
-        {
-            //get the current positions/orientations of the nodes
-            Plane NodeACurrent = p[PIndex[0]].Orientation;
-            Plane NodeBCurrent = p[PIndex[1]].Orientation;
-
-            //get the initial orientations of the beam end frames..
-            P0R = P0;
-            P1R = P1;
-            //..and transform them to get the current beam end frames
-            P0R.Transform(Transform.PlaneToPlane(Plane.WorldXY, NodeACurrent));
-            P1R.Transform(Transform.PlaneToPlane(Plane.WorldXY, NodeBCurrent));
-
-            //axial (ignoring elongation due to bowing for now)
-            Vector3d Current = P1R.Origin - P0R.Origin;
-            double CurrentLength = Current.Length;
-            double Stretch = CurrentLength - L0;
-            Vector3d AxialMove = 0.5*(Current/CurrentLength)*Stretch;
-
-            Vector3d X1 = P0R.XAxis;
-            Vector3d Y1 = P0R.YAxis;
-            Vector3d X2 = P1R.XAxis;
-            Vector3d Y2 = P1R.YAxis;
-
-            //bend angles
-            Vector3d UnitCurrent = Current;
-            UnitCurrent.Unitize();
-
-            TX1 = Y1*UnitCurrent;
-            TX2 = Y2*UnitCurrent;
-            TY1 = X1*UnitCurrent;
-            TY2 = X2*UnitCurrent;
-
-
-            //twist
-            twist = ((X1*Y2) - (X2*Y1))/2.0;
-
-            //moments
-            Vector3d Moment1 = (X1*TX1) - (Y1*TY1);
-            Vector3d Moment2 = (X2*TX2) - (Y2*TY2);
-
-            Torque[0] = -0.25*(Moment1 + twist*Current);
-            Torque[1] = -0.25*(Moment2 - twist*Current);
-            TorqueWeighting[0] = TorqueWeighting[1] = E*A;
-
-            //  shears
-            Vector3d SY1 = 0.25*Vector3d.CrossProduct(TX1*X1, Current);
-            Vector3d SX1 = 0.25*Vector3d.CrossProduct(TY1*Y1, Current);
-            Vector3d SY2 = 0.25*Vector3d.CrossProduct(TX2*X2, Current);
-            Vector3d SX2 = 0.25*Vector3d.CrossProduct(TY2*Y2, Current);
-
-            Move[0] = AxialMove + SX1 - SY1 + SX2 - SY2;
-            Move[1] = -Move[0];
-
-
-            //K2 Calcs   -----------------------------------------
-
-            //Element Internal Forces
-            double L = CurrentLength; // New Length / Current Length
-            double e; // Elongation
-            double N; // Normal Force
-            double MX1, MX2, MY1, MY2; //Internal Moments
-
-            e = L - L0; //Calculate elongation
-            // e = CalculateElongation();  -- incorporates bowing
-
-            N = CalculateN(E, A, L0, e); //Calculate normal force
-
-            MX1 = CalculateM(N, L0, TX1, TX2);
-            MX2 = CalculateM(N, L0, TX2, TX1);
-            MY1 = CalculateM(N, L0, TY1, TY2);
-            MY2 = CalculateM(N, L0, TY2, TY1);
-
-            //Apply Element Forces to Nodes
-        }
-
-        public override object Output(List<KangarooSolver.Particle> p)
-        {
-            List<object> DataOut = new List<object>();
-
-            DataOut.Add(P0R);
-            DataOut.Add(P1R);
-            DataOut.Add(TX1);
-            DataOut.Add(TX2);
-            DataOut.Add(TY1);
-            DataOut.Add(TY2);
-            DataOut.Add(twist);
-            DataOut.Add(twist);
-
-            return DataOut;
-        }
         
         public double CalculateTheta(Vector3d p, Vector3d x)
         {
@@ -269,8 +180,8 @@ namespace K2Engineering {
         {
             return MT*(Vector3d.CrossProduct(x1, y2) - Vector3d.CrossProduct(y1, x2));
         }
-        
-        public void CalculateTemp(List<KangarooSolver.Particle> p)
+
+        public override void Calculate(List<KangarooSolver.Particle> p)
         {
         	  //get the current positions/orientations of the nodes
             Plane NodeACurrent = p[PIndex[0]].Orientation;
@@ -284,14 +195,14 @@ namespace K2Engineering {
             P1R.Transform(Transform.PlaneToPlane(Plane.WorldXY, NodeBCurrent));
             
             //Find local angle changes
-            x1 = P0R.XAxis;
-            x2 = P1R.XAxis;
-            y1 = P0R.YAxis;
-            y2 = P1R.YAxis;
+            Vector3d x1 = P0R.XAxis;
+            Vector3d x2 = P1R.XAxis;
+            Vector3d y1 = P0R.YAxis;
+            Vector3d y2 = P1R.YAxis;
             
             Vector3d Current = P1R.Origin - P0R.Origin;
             double Ty1 = CalculateTheta(Current, x1);
-            double Tx1 = CalculateTheta(Current, y1)
+            double Tx1 = CalculateTheta(Current, y1);
             double Ty2 = CalculateTheta(Current, x2);
             double Tx2 = CalculateTheta(Current, y2);
             double Tz = CalculateTwist(x1, x2, y1, y2);
@@ -306,12 +217,12 @@ namespace K2Engineering {
             double Mz = CalculateMT(G, J, L0, Tz);
             
             //Determine end point forces
-            Vector3d F1 = CalculateForceAtNode1(N, Current, Mx1, y1, My1, x1, Mx2, y2, My2, x2, L0);
-            Vector3d F2 = -1 * F1;
+            F1 = CalculateForceAtNode1(N, Current, Mx1, y1, My1, x1, Mx2, y2, My2, x2, L0);
+            F2 = -1 * F1;
                         
-            Vector3d MCompB = CalculateMomentCompB(MT, y1, x1, y2, x2);
-            Vector3d M1 = - (CalculateMomentCompA(Current, Mx1, y1, My1, x1, L0) + MCompB);
-            Vector3d M2 = - (CalculateMomentCompA(Current, Mx2, y2, My2, x2, L0) + MCompB);
+            Vector3d MCompB = CalculateMomentCompB(Mz, y1, x1, y2, x2);
+            M1 = - (CalculateMomentCompA(Current, Mx1, y1, My1, x1, L0) + MCompB);
+            M2 = - (CalculateMomentCompA(Current, Mx2, y2, My2, x2, L0) + MCompB);
             
             //Move
             Move[0] = F1;
@@ -319,7 +230,7 @@ namespace K2Engineering {
             Torque[0] = M1;
             Torque[1] = M2;
           }
-        public object OutputTemp(List<KangarooSolver.Particle> p)
+        public override object Output(List<KangarooSolver.Particle> p)
         {
             List<object> DataOut = new List<object>();
 

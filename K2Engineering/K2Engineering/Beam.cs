@@ -23,9 +23,14 @@ namespace K2Engineering {
         /// Registers all the input parameters for this component.
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager) {
-            pManager.AddLineParameter("Line", "Ln", "Line representing the bar element [m]", GH_ParamAccess.item);
-            pManager.AddNumberParameter("E-Modulus", "E", "E-Modulus of the material [MPa]", GH_ParamAccess.item);
-            pManager.AddNumberParameter("Area", "A", "Cross-section area [mm2]", GH_ParamAccess.item);
+            pManager.AddPlaneParameter("StartPlane", "SPlane", "Start Plane", GH_ParamAccess.item);
+            pManager.AddPlaneParameter("EndPlane", "EPlane", "End Plane", GH_ParamAccess.item);
+            pManager.AddNumberParameter("E", "E", "E", GH_ParamAccess.item);
+            pManager.AddNumberParameter("A", "A", "A", GH_ParamAccess.item);
+            pManager.AddNumberParameter("Ix", "Ix", "Ix", GH_ParamAccess.item);
+            pManager.AddNumberParameter("Iy", "Iy", "Iy", GH_ParamAccess.item);
+            pManager.AddNumberParameter("G", "G", "G", GH_ParamAccess.item);
+            pManager.AddNumberParameter("J", "J", "J", GH_ParamAccess.item);
         }
 
         /// <summary>
@@ -33,6 +38,8 @@ namespace K2Engineering {
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager) {
             pManager.AddGenericParameter("B", "Bar", "Bar element with force and stress output", GH_ParamAccess.item);
+            
+
         }
 
         /// <summary>
@@ -48,11 +55,22 @@ namespace K2Engineering {
             double L = 0;
             double Ix = 0;
             double Iy = 0;
-            double GJ = 0;
+            double G = 0;
+            double J = 0;
 
+            if (!DA.GetData(0, ref startPlane)) return;
+            if (!DA.GetData(1, ref endPlane)) return;
+            if (!DA.GetData(2, ref E)) return;
+            if (!DA.GetData(3, ref A)) return;
+            if (!DA.GetData(4, ref L)) return;
+            if (!DA.GetData(5, ref Ix)) return;
+            if (!DA.GetData(6, ref Iy)) return;
+            if (!DA.GetData(7, ref G)) return;
+            if (!DA.GetData(8, ref J)) return;
+           
             //Create instance of bar
             //GoalObject barElement = new BeamGoal(startPlane, endPlane, L, E, A, Ix, Iy, GJ);
-            GoalObject beamElement = new BeamGoal(startPlane, endPlane, Plane.Unset, Plane.Unset, L, E, A, Ix, Iy, GJ);
+            GoalObject beamElement = new BeamGoal(startPlane, endPlane, Plane.Unset, Plane.Unset, L, E, A, Ix, Iy, );
 
             //Output
             DA.SetData(0, beamElement);
@@ -83,7 +101,7 @@ namespace K2Engineering {
         public double A, GJ, RestLength;
         public double TX1, TX2, TY1, TY2, twist;
 
-        public BeamGoal(Plane StartPlane, Plane EndPlane, Plane StartNode, Plane EndNode, double L, double E, double A, double Ix, double Iy, double GJ)
+        public BeamGoal(Plane StartPlane, Plane EndPlane, Plane StartNode, Plane EndNode, double L, double E, double A, double Ix, double Iy, double G, double J)
 
         {
             this.P0 = StartPlane;

@@ -44,9 +44,9 @@ namespace K2Engineering {
 
             PPos = new Point3d[2] {StartPlane.Origin, EndPlane.Origin};
             Move = new Vector3d[2];
-            Weighting = new double[2] {E, E};
+            Weighting = new double[2] {1, 1};
             Torque = new Vector3d[2];
-            TorqueWeighting = new double[2] {E, E};
+            TorqueWeighting = new double[2] {1, 1};
 
             InitialOrientation = new Plane[2] {StartNode, EndNode};
 
@@ -140,18 +140,12 @@ namespace K2Engineering {
             DataOut.Add(TY1);
             DataOut.Add(TY2);
             DataOut.Add(twist);
+            DataOut.Add(twist);
 
             return DataOut;
         }
-
-
-        public double CalculateThetaX(Vector3d p, Vector3d y)
-        {
-            p.Unitize();
-            return p*y;
-        }
-
-        public double CalculateThetaY(Vector3d p, Vector3d x)
+        
+        public double CalculateTheta(Vector3d p, Vector3d x)
         {
             p.Unitize();
             return p*x;
@@ -159,7 +153,7 @@ namespace K2Engineering {
 
         public double CalculateTwist(Vector3d x1, Vector3d x2, Vector3d y1, Vector3d y2)
         {
-            return (x1*y2 - x2*y1)*0.5;
+            return (x1*y2 - x2*y1) * 0.5;
         }
 
         public double CalculateElongation(Vector3d p, double L0, double Tx1, double Tx2, double Ty1, double Ty2)
@@ -177,28 +171,15 @@ namespace K2Engineering {
             return N*L0/30*(4*Tx1 - Tx2) + 2*E*Ix/L0*(2*Tx1 + Tx2);
         }
 
-        public double CalculateMT(double GJ, double L0, double psi)
+        public double CalculateMT(double G, double J, double L0, double Tz)
         {
-            return GJ/psi*L0;
+            return G * J/Tz*L0;
         }
 
         public Vector3d CalculateForceAtNode1(double N, Vector3d p, double Mx1, Vector3d y1, double My1, Vector3d x1,
             double Mx2, Vector3d y2, double My2, Vector3d x2, double L0)
         {
             return (N*p + Mx1*y1 - My1*x1 + Mx2*y2 + My2*x2)/L0;
-        }
-
-        //node 2 is neg node 1
-        public Vector3d CalculateForceAtNode2(double N, Vector3d p, double Mx1, Vector3d y1, double My1, Vector3d x1,
-            double Mx2, Vector3d y2, double My2, Vector3d x2, double L0)
-        {
-            return -1*CalculateForceAtNode1(N, p, Mx1, y1, My1, x1, Mx2, y2, My2, x2, L0);
-        }
-
-        private Vector3d CalculateMomentAtNode(double N, Vector3d p, double Mx, Vector3d y, double My, Vector3d x,
-            double MT, Vector3d yAlt, Vector3d xAlt, double L0)
-        {
-            return -CalculateMomentCompA(p, Mx, y, My, x, L0) + CalculateMomentCompB(MT, y, x, yAlt, xAlt);
         }
 
         private Vector3d CalculateMomentCompA(Vector3d p, double Mx, Vector3d y, double My, Vector3d x, double L0)
@@ -210,19 +191,67 @@ namespace K2Engineering {
         {
             return MT*(Vector3d.CrossProduct(x1, y2) - Vector3d.CrossProduct(y1, x2));
         }
-
-        public Vector3d CalculateMomentAtNode1(double N, Vector3d p, double Mx, Vector3d y, double My, Vector3d x,
-            double MT, Vector3d yAlt, Vector3d xAlt, double L0)
+        
+        public void CalculateTemp(List<KangarooSolver.Particle> p)
         {
-            return -(CalculateMomentCompA(p, Mx, y, My, x, L0) + CalculateMomentCompB(MT, y, x, yAlt, xAlt));
-        }
+        	  //get the current positions/orientations of the nodes
+            Plane NodeACurrent = p[PIndex[0]].Orientation;
+            Plane NodeBCurrent = p[PIndex[1]].Orientation;
 
-        public Vector3d CalculateMomentAtNode2(double N, Vector3d p, double Mx, Vector3d y, double My, Vector3d x,
-            double MT, Vector3d yAlt, Vector3d xAlt, double L0)
+            //get the initial orientations of the beam end frames..
+            P0R = P0;
+            P1R = P1;
+            //..and transform them to get the current beam end frames
+            P0R.Transform(Transform.PlaneToPlane(Plane.WorldXY, NodeACurrent));
+            P1R.Transform(Transform.PlaneToPlane(Plane.WorldXY, NodeBCurrent));
+            
+            //Find local angle changes
+            x1 = P0R.XAxis;
+            x2 = P1R.XAxis;
+            y1 = P0R.YAxis;
+            y2 = P1R.YAxis;
+            
+            Vector3d Current = P1R.Origin - P0R.Origin;
+            double Ty1 = CalculateTheta(Current, x1);
+            double Tx1 = CalculateTheta(Current, y1)
+            double Ty2 = CalculateTheta(Current, x2);
+            double Tx2 = CalculateTheta(Current, y2);
+            double Tz = CalculateTwist(x1, x2, y1, y2);
+            
+            //Determine member forces
+            double e = CalculateElongation(Current, L0, Tx1, Tx2, Ty1, Ty2);
+            double N = CalculateN(E, A, L0, e);
+            double Mx1 = CalculateM(N, L0, Tx1, Tx2);
+            double Mx2 = CalculateM(N, L0, Tx2, Tx1);
+            double My1 = CalculateM(N, L0, Ty1, Ty2);
+            double My2 = CalculateM(N, L0, Ty2, Ty1);
+            double Mz = CalculateMT(G, J, L0, Tz);
+            
+            //Determine end point forces
+            Vector3d F1 = CalculateForceAtNode1(N, Current, Mx1, y1, My1, x1, Mx2, y2, My2, x2, L0);
+            Vector3d F2 = -1 * F1;
+                        
+            Vector3d MCompB = CalculateMomentCompB(MT, y1, x1, y2, x2);
+            Vector3d M1 = - (CalculateMomentCompA(Current, Mx1, y1, My1, x1, L0) + MCompB);
+            Vector3d M2 = - (CalculateMomentCompA(Current, Mx2, y2, My2, x2, L0) + MCompB);
+            
+            //Move
+            Move[0] = F1;
+            Move[1] = F2;
+            Torque[0] = M1;
+            Torque[1] = M2;
+          }
+        public object OutputTemp(List<KangarooSolver.Particle> p)
         {
-            return -(CalculateMomentCompA(p, Mx, y, My, x, L0) + CalculateMomentCompB(MT, yAlt, xAlt, y, x));
-        }
+            List<object> DataOut = new List<object>();
 
+            DataOut.Add(F1);
+            DataOut.Add(F2);
+            DataOut.Add(M1);
+            DataOut.Add(M2);
+            
+            return DataOut;
+        }
     }
 }
 

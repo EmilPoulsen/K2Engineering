@@ -62,15 +62,14 @@ namespace K2Engineering {
             if (!DA.GetData(1, ref endPlane)) return;
             if (!DA.GetData(2, ref E)) return;
             if (!DA.GetData(3, ref A)) return;
-            if (!DA.GetData(4, ref L)) return;
-            if (!DA.GetData(5, ref Ix)) return;
-            if (!DA.GetData(6, ref Iy)) return;
-            if (!DA.GetData(7, ref G)) return;
-            if (!DA.GetData(8, ref J)) return;
+            if (!DA.GetData(4, ref Ix)) return;
+            if (!DA.GetData(5, ref Iy)) return;
+            if (!DA.GetData(6, ref G)) return;
+            if (!DA.GetData(7, ref J)) return;
            
             //Create instance of bar
             //GoalObject barElement = new BeamGoal(startPlane, endPlane, L, E, A, Ix, Iy, GJ);
-            GoalObject beamElement = new BeamGoal(startPlane, endPlane, Plane.Unset, Plane.Unset, L, E, A, Ix, Iy, G, J);
+            GoalObject beamElement = new BeamGoal(startPlane, endPlane, startPlane, endPlane, L, E, A, Ix, Iy, G, J);
 
             //Output
             DA.SetData(0, beamElement);

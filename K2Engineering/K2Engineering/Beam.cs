@@ -98,7 +98,7 @@ namespace K2Engineering {
         public double J; // MomentOfInertiaInTorsion
         public double iL; //InitialLength 
 
-        public double A, GJ, RestLength;
+        public double A, GJ, L0;
         public double TX1, TX2, TY1, TY2, twist;
 
         public BeamGoal(Plane StartPlane, Plane EndPlane, Plane StartNode, Plane EndNode, double L, 
@@ -111,7 +111,7 @@ namespace K2Engineering {
             this.P0.Transform(Transform.ChangeBasis(Plane.WorldXY, StartNode));
             this.P1.Transform(Transform.ChangeBasis(Plane.WorldXY, EndNode));
 
-            RestLength = L;
+            L0 = L;
             this.E = E;
             this.A = A;
             this.Ix = Ix;
@@ -147,7 +147,7 @@ namespace K2Engineering {
             //axial (ignoring elongation due to bowing for now)
             Vector3d Current = P1R.Origin - P0R.Origin;
             double CurrentLength = Current.Length;
-            double Stretch = CurrentLength - RestLength;
+            double Stretch = CurrentLength - L0;
             Vector3d AxialMove = 0.5*(Current/CurrentLength)*Stretch;
 
             Vector3d X1 = P0R.XAxis;
@@ -189,7 +189,6 @@ namespace K2Engineering {
             //K2 Calcs   -----------------------------------------
 
             //Element Internal Forces
-            double L0 = RestLength; //Initial Length / Rest Length
             double L = CurrentLength; // New Length / Current Length
             double e; // Elongation
             double N; // Normal Force

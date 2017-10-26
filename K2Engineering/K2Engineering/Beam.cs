@@ -23,14 +23,19 @@ namespace K2Engineering {
         /// Registers all the input parameters for this component.
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager) {
-            pManager.AddPlaneParameter("StartPlane", "SPlane", "Start Plane", GH_ParamAccess.item);
-            pManager.AddPlaneParameter("EndPlane", "EPlane", "End Plane", GH_ParamAccess.item);
-            pManager.AddNumberParameter("E", "E", "E", GH_ParamAccess.item);
-            pManager.AddNumberParameter("A", "A", "A", GH_ParamAccess.item);
-            pManager.AddNumberParameter("Ix", "Ix", "Ix", GH_ParamAccess.item);
-            pManager.AddNumberParameter("Iy", "Iy", "Iy", GH_ParamAccess.item);
-            pManager.AddNumberParameter("G", "G", "G", GH_ParamAccess.item);
-            pManager.AddNumberParameter("J", "J", "J", GH_ParamAccess.item);
+            List<int> optionals = new List<int>();
+            optionals.Add(pManager.AddPlaneParameter("StartFrame", "StartFrame", "The plane at one end of the beam, its Z axis aligned with the beam direction", 0));
+            optionals.Add(pManager.AddPlaneParameter("EndFrame", "EndFrame", "Should be parallel to StartFrame", 0));
+            optionals.Add(pManager.AddPlaneParameter("StartNode", "StartNode", "The plane defining the node the start of the beam attaches to. If none supplied this defaults to XY aligned", 0));
+            optionals.Add(pManager.AddPlaneParameter("EndNode", "EndNode", "The plane defining the node the end of the beam attaches to. If none supplied this defaults to XY aligned", 0));
+            pManager.AddNumberParameter("E", "E", "Young's Modulus", 0, 1.0);
+            pManager.AddNumberParameter("A", "A", "Cross-section area", 0, 1.0);
+            pManager.AddNumberParameter("Ix", "Ix", "2nd moment of area about X", 0, 1.0);
+            pManager.AddNumberParameter("Iy", "Iy", "2nd moment of area about Y", 0, 1.0);
+            pManager.AddNumberParameter("GJ", "GJ", "Shear modulus * torsional constant", 0, 1.0);
+
+            foreach (int i in optionals) pManager[i].Optional = true;
+
         }
 
         /// <summary>
@@ -47,32 +52,21 @@ namespace K2Engineering {
         /// </summary>
         /// <param name="DA">The DA object is used to retrieve from inputs and store in outputs.</param>
         protected override void SolveInstance(IGH_DataAccess DA) {
-            //Input
-            Plane startPlane = Plane.Unset;
-            Plane endPlane = Plane.Unset;
-            double E = 0;
-            double A = 0;
-            double L = 0;
-            double Ix = 0;
-            double Iy = 0;
-            double G = 0;
-            double J = 0;
-
-            if (!DA.GetData(0, ref startPlane)) return;
-            if (!DA.GetData(1, ref endPlane)) return;
-            if (!DA.GetData(2, ref E)) return;
-            if (!DA.GetData(3, ref A)) return;
-            if (!DA.GetData(4, ref Ix)) return;
-            if (!DA.GetData(5, ref Iy)) return;
-            if (!DA.GetData(6, ref G)) return;
-            if (!DA.GetData(7, ref J)) return;
-           
-            //Create instance of bar
-            //GoalObject barElement = new BeamGoal(startPlane, endPlane, L, E, A, Ix, Iy, GJ);
-            GoalObject beamElement = new BeamGoal(startPlane, endPlane, new Plane(startPlane.Origin, Vector3d.XAxis, Vector3d.YAxis), new Plane(endPlane.Origin, Vector3d.XAxis, Vector3d.YAxis), E, A, Ix, Iy, G, J);
-
-            //Output
-            DA.SetData(0, beamElement);
+            Plane startPlane = default(Plane);
+            Plane endPlane = default(Plane);
+            Plane startNode = default(Plane);
+            Plane endNode = default(Plane);
+            double e = 0.0;
+            if (DA.GetData<Plane>(0, ref startPlane) && DA.GetData<Plane>(1, ref endPlane) && DA.GetData<double>(4, ref e)) {
+                if (!DA.GetData<Plane>(2, ref startNode)) {
+                    startNode = new Plane(startPlane.Origin, Vector3d.XAxis, Vector3d.YAxis);
+                }
+                if (!DA.GetData<Plane>(3, ref endNode)) {
+                    endNode = new Plane(endPlane.Origin, Vector3d.XAxis, Vector3d.YAxis);
+                }
+                double l = startPlane.Origin.DistanceTo(endPlane.Origin);
+                DA.SetData(0, new BeamGoal(startPlane, endPlane, startNode, endNode, l, e, 1.0, 1.0, 1.0, 1.0));
+            }
         }
 
         public override Guid ComponentGuid {
@@ -81,6 +75,125 @@ namespace K2Engineering {
         
     }
 
+    public class BeamGoal : GoalObject {
+        public Plane P0;
+        public Plane P1;
+        public Plane P0R;
+        public Plane P1R;
+        public double E;
+        public double A;
+        public double Ix;
+        public double Iy;
+        public double GJ;
+        public double RestLength;
+        public double TX1;
+        public double TX2;
+        public double TY1;
+        public double TY2;
+        public double twist;
+
+        public BeamGoal(Plane StartPlane, Plane EndPlane, Plane StartNode, Plane EndNode, double L, double E, double A, double Ix, double Iy, double GJ) {
+            this.P0 = StartPlane;
+            this.P1 = EndPlane;
+            this.P0.Transform(Transform.ChangeBasis(Plane.WorldXY, StartNode));
+            this.P1.Transform(Transform.ChangeBasis(Plane.WorldXY, EndNode));
+            this.RestLength = L;
+            this.E = E;
+            this.A = A;
+            this.Ix = Ix;
+            this.Iy = Iy;
+            this.GJ = GJ;
+            base.PPos = new Point3d[]
+			{
+				StartPlane.Origin,
+				EndPlane.Origin
+			};
+            base.Move = new Vector3d[2];
+            base.Weighting = new double[]
+			{
+				E,
+				E
+			};
+            base.Torque = new Vector3d[2];
+            base.TorqueWeighting = new double[]
+			{
+				E,
+				E
+			};
+            base.InitialOrientation = new Plane[]
+			{
+				StartNode,
+				EndNode
+			};
+            this.P0R = StartPlane;
+            this.P1R = EndPlane;
+        }
+        public override void Calculate(List<KangarooSolver.Particle> p) {
+            //get the current positions/orientations of the nodes
+            Plane orientation = p[base.PIndex[0]].Orientation;
+            Plane orientation2 = p[base.PIndex[1]].Orientation;
+
+            //get the initial orientations of the beam end frames..
+            this.P0R = this.P0;
+            this.P1R = this.P1;
+            //..and transform them to get the current beam end frames
+            this.P0R.Transform(Transform.PlaneToPlane(Plane.WorldXY, orientation));
+            this.P1R.Transform(Transform.PlaneToPlane(Plane.WorldXY, orientation2));
+
+            //axial (ignoring elongation due to bowing for now)
+            Vector3d current = this.P1R.Origin - this.P0R.Origin;
+            double length = current.Length;
+            double num = length - this.RestLength;
+            Vector3d axialMove = 0.5 * (current / length) * num;
+            Vector3d xAxis = this.P0R.XAxis;
+            Vector3d yAxis = this.P0R.YAxis;
+            Vector3d xAxis2 = this.P1R.XAxis;
+            Vector3d yAxis2 = this.P1R.YAxis;
+            Vector3d vector3d3 = current;
+            vector3d3.Unitize();
+
+            //bend angles
+            this.TX1 = yAxis * vector3d3;
+            this.TX2 = yAxis2 * vector3d3;
+            this.TY1 = xAxis * vector3d3;
+            this.TY2 = xAxis2 * vector3d3;
+
+            //twist
+            this.twist = (xAxis * yAxis2 - xAxis2 * yAxis) / 2.0;
+
+            //moments
+            Vector3d moment1 = xAxis * this.TX1 - yAxis * this.TY1;
+            Vector3d moment2 = xAxis2 * this.TX2 - yAxis2 * this.TY2;
+
+            base.Torque[0] = -0.25 * (moment1 + this.twist * current);
+            base.Torque[1] = -0.25 * (moment2 - this.twist * current);
+            base.TorqueWeighting[0] = (base.TorqueWeighting[1] = this.E * this.A);
+
+            //  shears
+            Vector3d SY1 = 0.25 * Vector3d.CrossProduct(this.TX1 * xAxis, current);
+            Vector3d SX1 = 0.25 * Vector3d.CrossProduct(this.TY1 * yAxis, current);
+            Vector3d SY2 = 0.25 * Vector3d.CrossProduct(this.TX2 * xAxis2, current);
+            Vector3d SX2 = 0.25 * Vector3d.CrossProduct(this.TY2 * yAxis2, current);
+
+            base.Move[0] = axialMove + SX1 - SY1 + SX2 - SY2;
+            base.Move[1] = -base.Move[0];
+        }
+
+
+        public override object Output(List<KangarooSolver.Particle> p) {
+            return new List<object>
+			{
+				this.P0R,
+				this.P1R,
+				this.TX1,
+				this.TX2,
+				this.TY1,
+				this.TY2,
+				this.twist
+			};
+        }
+    }
+    /*
     public class BeamGoal : GoalObject {
 
         public Plane P0; //Original plane at first node
@@ -297,5 +410,6 @@ namespace K2Engineering {
             return DataOut;
         }
     }
+    */
 }
 

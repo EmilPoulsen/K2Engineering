@@ -177,6 +177,16 @@ namespace K2Engineering {
 
             base.Move[0] = axialMove + SX1 - SY1 + SX2 - SY2;
             base.Move[1] = -base.Move[0];
+            double L0 = RestLength;
+
+            //Determine member forces
+            double e = CalculateElongation(current, L0, TX1, TX2, TY1, TY2);
+            double N = CalculateN(E, A, L0, e);
+            double Mx1 = CalculateM(N, L0, TX1, TX2);
+            double Mx2 = CalculateM(N, L0, TX2, TX1);
+            double My1 = CalculateM(N, L0, TY1, TY2);
+            double My2 = CalculateM(N, L0, TY2, TY1);
+            double Mz = CalculateMT(GJ, L0, this.twist);
         }
 
 
@@ -192,6 +202,47 @@ namespace K2Engineering {
 				this.twist
 			};
         }
+
+        public double CalculateTheta(Vector3d p, Vector3d x) {
+            p.Unitize();
+            return p * x;
+        }
+
+        public double CalculateTwist(Vector3d x1, Vector3d x2, Vector3d y1, Vector3d y2) {
+            return (x1 * y2 - x2 * y1) * 0.5;
+        }
+
+        public double CalculateElongation(Vector3d p, double L0, double Tx1, double Tx2, double Ty1, double Ty2) {
+            return (p * p - L0 * L0) / (2 * L0) + L0 / 60 * (4 * (Tx1 * Tx1 + Ty1 * Ty1) - 2 * (Tx1 * Tx2 - Ty1 * Ty2) + 4 * (Tx2 * Tx2 + Ty2 * Ty2));
+        }
+
+        public double CalculateN(double E, double A, double L0, double e) {
+            return E * A / L0 * e;
+        }
+
+        public double CalculateM(double N, double L0, double Tx1, double Tx2) {
+            return N * L0 / 30 * (4 * Tx1 - Tx2) + 2 * E * Ix / L0 * (2 * Tx1 + Tx2);
+        }
+
+        public double CalculateMT(double GJ, double L0, double Tz) {
+            return GJ * Tz / L0;
+        }
+
+        public Vector3d CalculateForceAtNode1(double N, Vector3d p, double Mx1, Vector3d y1, double My1, Vector3d x1,
+          double Mx2, Vector3d y2, double My2, Vector3d x2, double L0) {
+            return (N * p + Mx1 * y1 - My1 * x1 + Mx2 * y2 + My2 * x2) / L0;
+        }
+
+        private Vector3d CalculateMomentCompA(Vector3d p, double Mx, Vector3d y, double My, Vector3d x, double L0) {
+            return Mx * Vector3d.CrossProduct(y, p) / L0 - My * Vector3d.CrossProduct(x, p) / L0;
+        }
+
+        private Vector3d CalculateMomentCompB(double MT, Vector3d y1, Vector3d x1, Vector3d y2, Vector3d x2) {
+            return MT * (Vector3d.CrossProduct(x1, y2) - Vector3d.CrossProduct(y1, x2));
+        }
+
+
+
     }
     /*
     public class BeamGoal : GoalObject {

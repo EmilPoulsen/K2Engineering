@@ -44,10 +44,12 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="KangarooSolver">
-      <HintPath>..\..\..\..\..\AppData\Roaming\Grasshopper\Libraries\KangarooSolver.dll</HintPath>
+      <HintPath>..\..\KangarooSolver.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="Plankton">
-      <HintPath>..\..\..\..\..\AppData\Roaming\Grasshopper\Libraries\Plankton.dll</HintPath>
+      <HintPath>..\..\..\..\Visual Studio 2012\Projects\Emu\EmuGh\dll\Plankton.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -208,7 +210,7 @@
   </Target>
   -->
   <PropertyGroup>
-    <PostBuildEvent>copy /Y "$(TargetDir)$(ProjectName).dll" "C:\Users\Cecilie\AppData\Roaming\Grasshopper\Libraries\$(ProjectName).gha"</PostBuildEvent>
+    <PostBuildEvent>copy /Y "$(TargetDir)$(ProjectName).dll" "C:\Users\Emil\AppData\Roaming\Grasshopper\Libraries\Kangaroo\$(ProjectName).gha"</PostBuildEvent>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug32|AnyCPU' ">
     <StartArguments>
